@@ -5,6 +5,8 @@ interface MediaItem { thumbnail: string; url: string; }
 interface ApiResponse { media: MediaItem[]; }
 interface ResultsDisplayProps { data: ApiResponse; }
 
+const BACKEND_URL = 'https://instagram-downloader-backend.foade984.workers.dev';
+
 export function ResultsDisplay({ data }: ResultsDisplayProps) {
   const [isDownloading, setIsDownloading] = React.useState(false);
 
@@ -13,61 +15,55 @@ export function ResultsDisplay({ data }: ResultsDisplayProps) {
   const firstMedia = data.media[0];
   const isVideo = firstMedia.url.includes('.mp4') || firstMedia.url.includes('video');
 
-  // ---  وظيفة التحميل المحسّنة ---
+  // --- السحر يحدث هنا: نستخدم الوكيل لجلب الصور المصغرة ---
+  const thumbnailProxyUrl = `${BACKEND_URL}/image-proxy?url=${encodeURIComponent(firstMedia.thumbnail)}`;
+  const imageUrlProxy = isVideo ? firstMedia.url : `${BACKEND_URL}/image-proxy?url=${encodeURIComponent(firstMedia.url)}`;
+
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      // خدعة بسيطة: إنشاء عنصر <a> غير مرئي وتعيين سمة 'download'
-      // هذا يخبر المتصفح ببدء التحميل مباشرة عند النقر
+      const response = await fetch(imageUrlProxy); // نستخدم الوكيل للتحميل أيضًا لضمان النجاح
+      const blob = await response.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = firstMedia.url;
-      // نضيف 'download' لنجبر المتصفح على التحميل بدلاً من الفتح
-      link.setAttribute('download', `instadownloader-${Date.now()}.${isVideo ? 'mp4' : 'jpg'}`);
-      // لمنع مشاكل CORS، نطلب من المتصفح عدم إرسال بيانات المصدر
-      link.setAttribute('rel', 'noopener noreferrer'); 
-      
+      link.href = objectUrl;
+      link.download = `instadownloader-${Date.now()}.${isVideo ? 'mp4' : 'jpg'}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(objectUrl);
     } catch (error) {
-      console.error("Download failed, opening in new tab:", error);
-      window.open(firstMedia.url, '_blank');
+      console.error("Download failed:", error);
     } finally {
       setIsDownloading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-8 rounded-xl bg-white shadow-xl animate-fade-in overflow-hidden">
+    <div className="w-full max-w-lg mx-auto mt-8 rounded-xl bg-white shadow-xl animate-fade-in overflow-hidden">
       <div className="p-6">
         <h2 className="text-2xl font-bold text-center text-gray-800">Your Media is Ready!</h2>
       </div>
 
       <div className="bg-gray-50 p-4 md:p-6 flex flex-col items-center">
-        {/* --- خدعة CSS لإصلاح مشكلة الأبعاد --- */}
-        {/* نستخدم الصورة المصغرة (thumbnail) كعنصر مرجعي للأبعاد */}
-        <div className="w-full max-w-md mb-6 relative" style={{ paddingBottom: '125%' }}> 
-          {/* padding-bottom: 125% مناسب للفيديوهات الطولية (Reels) */}
-          <div className="absolute top-0 left-0 w-full h-full">
-            {isVideo ? (
-              <video
-                src={firstMedia.url}
-                controls
-                poster={firstMedia.thumbnail}
-                className="w-full h-full object-contain rounded-lg" 
-              >
-                Your browser does not support the video tag.
-              </video>
-            ) : (
-              // نعرض الصورة المصغرة (thumbnail) بدلاً من الصورة الكاملة
-              // لأنها مضمونة العرض وبنفس الأبعاد
-              <img
-                src={firstMedia.thumbnail}
-                alt="Downloaded media thumbnail"
-                className="w-full h-full object-contain rounded-lg"
-              />
-            )}
-          </div>
+        {/* --- CSS جديد للحفاظ على الأبعاد الأصلية --- */}
+        <div className="w-full mb-6">
+          {isVideo ? (
+            <video
+              src={firstMedia.url}
+              controls
+              poster={thumbnailProxyUrl} // نستخدم الوكيل هنا!
+              className="w-full h-auto rounded-lg shadow-md aspect-auto" // aspect-auto للحفاظ على الأبعاد
+            >
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <img
+              src={thumbnailProxyUrl} // نستخدم الوكيل هنا!
+              alt="Downloaded media"
+              className="w-full h-auto rounded-lg shadow-md aspect-auto" // aspect-auto للحفاظ على الأبعاد
+            />
+          )}
         </div>
         
         <div className="w-full max-w-md">
