@@ -3,7 +3,7 @@ import { Download } from 'lucide-react';
 
 export function HeroSection() {
   return (
-    <section className="w-full py-20 md:py-32">
+    <section className="w-full py-12 md:py-20"> {/* <--- السطر المعدل */}
       <div className="mx-auto max-w-5xl px-4 text-center">
         <div className="mb-4">
           <span className="inline-block rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
