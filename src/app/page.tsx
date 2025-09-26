@@ -1,25 +1,47 @@
 import * as React from 'react';
-import { Header } from '@/components/Header';
-import { HeroSection } from '@/components/HeroSection';
-import { FeaturesSection } from '@/components/FeaturesSection'; // استيراد المكون الجديد
 
-// import { HowItWorksSection } from '@/components/HowItWorksSection';
-// import { Footer } from '@/components/Footer';
+// بيانات الخطوات
+const steps = [
+  {
+    number: '1',
+    title: 'Copy URL',
+    description: 'Copy the Instagram post, reel, or story URL from your browser or app.',
+  },
+  {
+    number: '2',
+    title: 'Paste & Process',
+    description: 'Paste the URL in our tool and click download to process the content.',
+  },
+  {
+    number: '3',
+    title: 'Save Content',
+    description: 'Download the high-quality content directly to your device.',
+  },
+];
 
-export default function HomePage() {
+export function HowItWorksSection() {
   return (
-    <>
-      <Header />
-      <main className="pt-16 bg-gray-50">
-        <HeroSection />
-        <FeaturesSection /> {/* استخدام المكون الجديد هنا */}
-        
-        {/* مكان قسم كيف يعمل */}
-        <div className="h-96 flex items-center justify-center">How It Works Section Placeholder</div>
+    <section className="w-full bg-gray-50 py-20 md:py-24">
+      <div className="mx-auto max-w-5xl px-4 text-center">
+        <h2 className="text-3xl font-bold tracking-tight text-gray-800 sm:text-4xl">
+          How It Works
+        </h2>
+        <p className="mt-4 text-lg text-gray-600">
+          A simple 3-step process to download any Instagram content.
+        </p>
 
-        {/* مكان الفوتر */}
-        <div className="h-48 flex items-center justify-center bg-gray-800 text-white">Footer Placeholder</div>
-      </main>
-    </>
+        <div className="mt-12 grid gap-8 md:grid-cols-3">
+          {steps.map((step) => (
+            <div key={step.number} className="flex flex-col items-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-800 text-lg font-bold text-white">
+                {step.number}
+              </div>
+              <h3 className="mt-5 text-xl font-bold text-gray-800">{step.title}</h3>
+              <p className="mt-2 text-gray-600">{step.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
