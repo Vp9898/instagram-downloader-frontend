@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { FeaturesSection } from '@/components/FeaturesSection';
+import { Footer } from '@/components/Footer'; // استيراد الفوتر
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
-import { HowItWorksSection } from '@/components/HowItWorksSection'; // التأكد من وجود هذا السطر
-
-// سنقوم ببناء الفوتر في الخطوة التالية
-// import { Footer } from '@/components/Footer';
+import { HowItWorksSection } from '@/components/HowItWorksSection';
 
 export default function HomePage() {
   return (
@@ -15,10 +13,8 @@ export default function HomePage() {
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />
-        
-        {/* مكان الفوتر */}
-        <div className="h-48 flex items-center justify-center bg-gray-800 text-white">Footer Placeholder</div>
       </main>
+      <Footer /> {/* استخدام الفوتر الجديد هنا */}
     </>
   );
 }
