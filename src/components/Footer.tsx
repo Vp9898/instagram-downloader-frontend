@@ -19,4 +19,3 @@ export function Footer() {
     </footer>
   );
 }
-```4.  **احفظ الملف (Commit new file).**
