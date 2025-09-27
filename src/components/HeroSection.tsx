@@ -5,6 +5,7 @@ import { Download, Loader2, ShieldX } from 'lucide-react';
 import { ResultsDisplay } from './ResultsDisplay';
 
 const BACKEND_URL = 'https://instagram-downloader-backend.foade984.workers.dev';
+
 type ViewState = 'FORM' | 'LOADING' | 'RESULTS' | 'ERROR';
 
 export function HeroSection() {
@@ -23,18 +24,26 @@ export function HeroSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
-      const result = await response.json();
 
+      // --- هذا هو الجزء الذي تم إصلاحه ---
+      // تحقق أولاً مما إذا كان الطلب ناجحًا بشكل عام
       if (!response.ok) {
-        const details = (result.details || result.error || '').toLowerCase();
+        // إذا لم يكن ناجحًا، اقرأ الخطأ وقم برميه
+        const errorResult = await response.json();
+        const details = (errorResult.details || errorResult.error || '').toLowerCase();
         if (details.includes('private') || details.includes('not available') || details.includes('login required')) {
           throw new Error('This content is private or unavailable and cannot be downloaded.');
         } else {
           throw new Error('Failed to fetch the media. Please check the URL and try again.');
         }
       }
+
+      // إذا كان الطلب ناجحًا، اقرأ البيانات وقم بتعيينها
+      const result = await response.json();
       setData(result);
       setView('RESULTS');
+      // --- نهاية الجزء الذي تم إصلاحه ---
+
     } catch (err: any) {
       setErrorMessage(err.message);
       setView('ERROR');
