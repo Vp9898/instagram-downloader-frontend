@@ -39,7 +39,6 @@ export function ResultsDisplay({ data }: ResultsDisplayProps) {
   };
 
   return (
-    // --- الإصلاح هنا: لقد أعدنا البطاقة البيضاء الكاملة ---
     <div className="w-full max-w-lg mx-auto rounded-xl bg-white shadow-xl animate-fade-in overflow-hidden">
       <div className="p-6">
         <h2 className="text-2xl font-bold text-center text-gray-800">Your Media is Ready!</h2>
