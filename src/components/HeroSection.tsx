@@ -16,6 +16,9 @@ export function HeroSection() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    // لا نمنع الإرسال إذا كان الحقل فارغًا، سنعتمد على التحقق في الواجهة الخلفية
+    if (!url.trim()) return; 
+
     setIsLoading(true);
     setError(null);
     
@@ -71,6 +74,7 @@ export function HeroSection() {
             <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
               <label htmlFor="url-input" className="text-lg font-semibold text-gray-800">Paste Instagram URL</label>
               <input id="url-input" type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.instagram.com/p/..." className="w-full rounded-md border-gray-300 px-4 py-3 text-lg shadow-sm focus:border-purple-500 focus:ring-purple-500" disabled={isLoading} />
+              {/* --- الإصلاح هنا: تمت إزالة disabled={!url} --- */}
               <button type="submit" className="flex w-full items-center justify-center rounded-md bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-4 text-lg font-semibold text-white shadow-md transition-transform duration-200 hover:scale-105 active:scale-95 disabled:opacity-50" disabled={isLoading}>
                 {isLoading ? (<><Loader2 className="mr-2 h-5 w-5 animate-spin" />Processing...</>) : (<><Download className="mr-2 h-5 w-5" />Download</>)}
               </button>
@@ -86,7 +90,12 @@ export function HeroSection() {
       </div>
 
       <div ref={resultsRef} className="w-full bg-white transition-all duration-300">
-        {data && <div className="py-12 md:py-20"><ResultsDisplay data={data} /></div>}
+        {data && (
+          <div className="py-12 md:py-20">
+            {/* --- الإصلاح هنا: نمرر النتائج إلى مكون العرض --- */}
+            <ResultsDisplay data={data} />
+          </div>
+        )}
       </div>
     </section>
   );
