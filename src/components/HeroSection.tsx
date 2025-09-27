@@ -18,7 +18,6 @@ export function HeroSection() {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
-    // لا نمسح البيانات القديمة إلا عند بدء طلب جديد ناجح أو عند حدوث خطأ
     
     try {
       const response = await fetch(BACKEND_URL, {
@@ -38,7 +37,6 @@ export function HeroSection() {
         }
       }
       
-      // عند النجاح، نمسح أي خطأ قديم ونعين البيانات الجديدة
       setError(null);
       setData(result);
       
@@ -47,7 +45,6 @@ export function HeroSection() {
       }, 100);
 
     } catch (err: any) {
-      // عند حدوث خطأ، نمسح أي بيانات قديمة ونعين رسالة الخطأ
       setData(null);
       setError(err.message);
     } finally {
@@ -57,7 +54,6 @@ export function HeroSection() {
 
   return (
     <section className="w-full">
-      {/* قسم فورم التحميل (دائمًا ظاهر) */}
       <div className="bg-gray-50 py-12 md:py-20">
         <div className="mx-auto max-w-5xl px-4 text-center">
           <div className="mb-4">
@@ -79,7 +75,6 @@ export function HeroSection() {
                 {isLoading ? (<><Loader2 className="mr-2 h-5 w-5 animate-spin" />Processing...</>) : (<><Download className="mr-2 h-5 w-5" />Download</>)}
               </button>
             </form>
-            {/* رسالة الخطأ تظهر هنا عند الحاجة */}
             {error && (
               <div className="mt-4 flex items-center justify-center text-red-600 bg-red-100 p-3 rounded-md border border-red-300">
                 <AlertTriangle className="mr-2 h-5 w-5 flex-shrink-0" />
@@ -90,7 +85,6 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* قسم النتائج (يظهر فقط عند وجود بيانات) */}
       <div ref={resultsRef} className="w-full bg-white transition-all duration-300">
         {data && <div className="py-12 md:py-20"><ResultsDisplay data={data} /></div>}
       </div>
