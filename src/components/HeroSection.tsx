@@ -23,19 +23,16 @@ export function HeroSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
-      
       const result = await response.json();
 
-      if (!response.ok) {
-        const details = (result.details || result.error || '').toLowerCase();
-        if (details.includes('private') || details.includes('not available') || details.includes('login required')) {
-          throw new Error('This content is private or unavailable and cannot be downloaded.');
-        } else {
-          throw new Error('Failed to fetch the media. Please check the URL and try again.');
-        }
+      // تحديث التحقق
+      if (result && result.status === 'success' && result.data && result.data.length > 0) {
+        setData(result);
+        setView('RESULTS');
+      } else {
+        // الـ API الجديد يرسل الخطأ في حقل "message"
+        throw new Error(result.message || 'This content is private or unavailable.');
       }
-      setData(result);
-      setView('RESULTS');
     } catch (err: any) {
       setErrorMessage(err.message);
       setView('ERROR');
@@ -44,22 +41,18 @@ export function HeroSection() {
 
   const handleReset = () => {
     setUrl('');
-    setData(null);
-    setErrorMessage('');
     setView('FORM');
   };
 
   return (
     <section className="bg-gray-50 py-12 md:py-16 flex items-center justify-center min-h-[calc(80vh)]">
       <div className="mx-auto max-w-5xl px-4 text-center w-full">
-        
         {view === 'LOADING' && (
           <div className="flex flex-col items-center justify-center text-gray-600">
             <Loader2 className="h-12 w-12 animate-spin text-purple-600" />
             <p className="mt-4 text-lg font-semibold">Processing your link...</p>
           </div>
         )}
-        
         {view === 'FORM' && (
           <>
             <div className="mb-4">
@@ -77,10 +70,10 @@ export function HeroSection() {
             </div>
           </>
         )}
-
         {view === 'RESULTS' && data && (
           <div>
-            <ResultsDisplay data={data} />
+            {/* تحديث طريقة تمرير الخصائص */}
+            <ResultsDisplay apiResponse={data} />
             <div className="text-center mt-8">
                 <button onClick={handleReset} className="font-semibold text-purple-600 hover:text-purple-800">
                   &larr; Download another
@@ -88,7 +81,6 @@ export function HeroSection() {
              </div>
           </div>
         )}
-
         {view === 'ERROR' && (
            <div className="w-full max-w-lg mx-auto rounded-xl bg-white shadow-xl animate-fade-in overflow-hidden">
               <div className="p-8 flex flex-col items-center justify-center text-center">
