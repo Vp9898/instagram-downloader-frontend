@@ -1,91 +1,40 @@
 "use client";
 
 import * as React from 'react';
-import { Download, Loader2, AlertTriangle } from 'lucide-react';
-import { ResultsDisplay } from './ResultsDisplay';
+import { Download, Loader2 } from 'lucide-react';
 
-const BACKEND_URL = 'https://instagram-downloader-backend.foade984.workers.dev';
+interface HeroSectionProps {
+  isLoading: boolean;
+  onSubmit: (url: string) => void;
+}
 
-export function HeroSection() {
+export function HeroSection({ isLoading, onSubmit }: HeroSectionProps) {
   const [url, setUrl] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [data, setData] = React.useState<any | null>(null);
 
-  const resultsRef = React.useRef<HTMLDivElement>(null);
-
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch(BACKEND_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
-      
-      const result = await response.json();
-
-      if (!response.ok) {
-        const details = (result.details || result.error || '').toLowerCase();
-        if (details.includes('private') || details.includes('not available') || details.includes('login required')) {
-          throw new Error('This content is private or unavailable and cannot be downloaded.');
-        } else {
-          throw new Error('Failed to fetch the media. Please check the URL and try again.');
-        }
-      }
-      
-      setError(null);
-      setData(result);
-      
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-
-    } catch (err: any) {
-      setData(null);
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
+    if (!isLoading && url.trim()) {
+      onSubmit(url);
     }
   };
-
+  
   return (
-    <section className="w-full">
-      {/* قسم فورم التحميل */}
-      <div className="bg-gray-50 py-12 md:py-16">
-        <div className="mx-auto max-w-5xl px-4 text-center">
-          <div className="mb-4">
-            <span className="inline-block rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">Free</span>
-            <span className="ml-2 text-sm text-gray-600">No registration required</span>
-          </div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">Download Instagram Media</h1>
-          <div className="mx-auto mt-12 w-full max-w-xl rounded-lg bg-white p-6 shadow-lg sm:p-8">
-            <form onSubmit={handleSubmit}>
-              <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.instagram.com/..." className="w-full rounded-md border-gray-300 px-4 py-3 text-lg shadow-sm focus:border-purple-500 focus:ring-purple-500" disabled={isLoading} />
-              <button type="submit" className="mt-4 flex w-full items-center justify-center rounded-md bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-4 text-lg font-semibold text-white shadow-md" disabled={isLoading}>
-                {isLoading ? (<><Loader2 className="mr-2 h-5 w-5 animate-spin" />Processing...</>) : (<><Download className="mr-2 h-5 w-5" />Download</>)}
-              </button>
-            </form>
-            {/* --- الإصلاح الحاسم هنا --- */}
-            {/* رسالة الخطأ تظهر الآن داخل بطاقة الفورم */}
-            {error && !isLoading && (
-              <div className="mt-4 flex items-center justify-center text-red-600 bg-red-100 p-3 rounded-md border border-red-300">
-                <AlertTriangle className="mr-2 h-5 w-5 flex-shrink-0" />
-                <p className="font-semibold text-center">{error}</p>
-              </div>
-            )}
-          </div>
+    <section className="bg-gray-50 py-12 md:py-16">
+      <div className="mx-auto max-w-5xl px-4 text-center w-full">
+        <div className="mb-4">
+          <span className="inline-block rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">Free</span>
+          <span className="ml-2 text-sm text-gray-600">No registration required</span>
         </div>
-      </div>
-
-      {/* قسم النتائج */}
-      <div ref={resultsRef} className="w-full bg-white transition-all duration-300">
-        {data && <div className="py-12 md:py-16"><ResultsDisplay data={data} /></div>}
+        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">Download Instagram Media</h1>
+        <div className="mx-auto mt-12 w-full max-w-xl rounded-lg bg-white p-6 shadow-lg sm:p-8">
+          <form onSubmit={handleSubmit}>
+            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.instagram.com/..." className="w-full rounded-md border-gray-300 px-4 py-3 text-lg shadow-sm focus:border-purple-500 focus:ring-purple-500" disabled={isLoading} />
+            <button type="submit" className="mt-4 flex w-full items-center justify-center rounded-md bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-4 text-lg font-semibold text-white shadow-md disabled:opacity-50" disabled={isLoading}>
+              {isLoading ? (<><Loader2 className="mr-2 h-5 w-5 animate-spin" />Processing...</>) : (<><Download className="mr-2 h-5 w-5" />Download</>)}
+            </button>
+          </form>
+        </div>
       </div>
     </section>
   );
 }
-```3.  **احفظ التغييرات.**
