@@ -1,99 +1,74 @@
-"use client";
-
 import * as React from 'react';
-import { Download, Loader2, AlertTriangle } from 'lucide-react';
-import { ResultsDisplay } from './ResultsDisplay';
+import { Download, Loader2 } from 'lucide-react';
+
+interface MediaItem { thumbnail: string; url: string; }
+interface ApiResponse { media: MediaItem[]; }
+interface ResultsDisplayProps { data: ApiResponse; }
 
 const BACKEND_URL = 'https://instagram-downloader-backend.foade984.workers.dev';
 
-export function HeroSection() {
-  const [url, setUrl] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [data, setData] = React.useState<any | null>(null);
+export function ResultsDisplay({ data }: ResultsDisplayProps) {
+  const [isDownloading, setIsDownloading] = React.useState(false);
 
-  const resultsRef = React.useRef<HTMLDivElement>(null);
+  if (!data?.media?.length) return null;
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    // لا نمسح البيانات القديمة إلا عند بدء طلب جديد ناجح أو عند حدوث خطأ
-    
+  const firstMedia = data.media[0];
+  const isVideo = firstMedia.url.includes('.mp4') || firstMedia.url.includes('video');
+
+  const thumbnailProxyUrl = `${BACKEND_URL}/image-proxy?url=${encodeURIComponent(firstMedia.thumbnail)}`;
+  const imageUrlProxy = isVideo ? firstMedia.url : `${BACKEND_URL}/image-proxy?url=${encodeURIComponent(firstMedia.url)}`;
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
     try {
-      const response = await fetch(BACKEND_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
-      
-      const result = await response.json();
-
-      if (!response.ok) {
-        const details = (result.details || result.error || '').toLowerCase();
-        if (details.includes('private') || details.includes('not available') || details.includes('login required') || details.includes('not found')) {
-          throw new Error('This content is private or unavailable.');
-        } else {
-          throw new Error('Failed to fetch data. Please check the URL and try again.');
-        }
-      }
-      
-      // عند النجاح، نمسح أي خطأ قديم ونعين البيانات الجديدة
-      setError(null);
-      setData(result);
-      
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-
-    } catch (err: any) {
-      // عند حدوث خطأ، نمسح أي بيانات قديمة ونعين رسالة الخطأ
-      setData(null);
-      setError(err.message);
+      const response = await fetch(imageUrlProxy);
+      const blob = await response.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = `instadownloader-${Date.now()}.${isVideo ? 'mp4' : 'jpg'}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      console.error("Download failed:", error);
     } finally {
-      setIsLoading(false);
+      setIsDownloading(false);
     }
   };
 
   return (
-    <section className="w-full">
-      {/* قسم فورم التحميل (دائمًا ظاهر) */}
-      <div className="bg-gray-50 py-12 md:py-20">
-        <div className="mx-auto max-w-5xl px-4 text-center">
-          <div className="mb-4">
-            <span className="inline-block rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">Free</span>
-            <span className="ml-2 text-sm text-gray-600">No registration required</span>
-          </div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">
-            Download Instagram
-            <span className="block bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">Videos & Photos</span>
-          </h1>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-gray-600">
-            Save Instagram videos, photos, reels, and stories in high quality.
-          </p>
-          <div className="mx-auto mt-12 w-full max-w-xl rounded-lg bg-white p-6 shadow-lg sm:p-8">
-            <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-              <label htmlFor="url-input" className="text-lg font-semibold text-gray-800">Paste Instagram URL</label>
-              <input id="url-input" type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.instagram.com/p/..." className="w-full rounded-md border-gray-300 px-4 py-3 text-lg shadow-sm focus:border-purple-500 focus:ring-purple-500" disabled={isLoading} />
-              <button type="submit" className="flex w-full items-center justify-center rounded-md bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-4 text-lg font-semibold text-white shadow-md transition-transform duration-200 hover:scale-105 active:scale-95 disabled:opacity-50" disabled={isLoading || !url}>
-                {isLoading ? (<><Loader2 className="mr-2 h-5 w-5 animate-spin" />Processing...</>) : (<><Download className="mr-2 h-5 w-5" />Download</>)}
-              </button>
-            </form>
-            {/* رسالة الخطأ تظهر هنا عند الحاجة */}
-            {error && (
-              <div className="mt-4 flex items-center justify-center text-red-600 bg-red-100 p-3 rounded-md border border-red-300">
-                <AlertTriangle className="mr-2 h-5 w-5 flex-shrink-0" />
-                <p className="font-semibold text-center">{error}</p>
-              </div>
-            )}
-          </div>
-        </div>
+    <div className="w-full max-w-lg mx-auto rounded-xl bg-white shadow-xl animate-fade-in overflow-hidden">
+      <div className="p-6">
+        <h2 className="text-2xl font-bold text-center text-gray-800">Your Media is Ready!</h2>
       </div>
 
-      {/* قسم النتائج (يظهر فقط عند وجود بيانات) */}
-      <div ref={resultsRef} className="w-full bg-white transition-all duration-300">
-        {data && <div className="py-12 md:py-20"><ResultsDisplay data={data} /></div>}
+      <div className="bg-gray-50 p-4 md:p-6 flex flex-col items-center">
+        <div className="w-full mb-6">
+          {isVideo ? (
+            <video src={firstMedia.url} controls poster={thumbnailProxyUrl} className="w-full h-auto rounded-lg shadow-md aspect-auto">
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <img src={thumbnailProxyUrl} alt="Downloaded media" className="w-full h-auto rounded-lg shadow-md aspect-auto" />
+          )}
+        </div>
+        
+        <div className="w-full max-w-md">
+          <button
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="flex w-full items-center justify-center rounded-md bg-gradient-to-r from-green-500 to-blue-500 px-6 py-4 text-lg font-semibold text-white shadow-md transition-transform duration-200 hover:scale-105 active:scale-95 disabled:opacity-75"
+          >
+            {isDownloading ? (
+              <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Downloading...</>
+            ) : (
+              <><Download className="mr-3 h-6 w-6" /> Download Now</>
+            )}
+          </button>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }
