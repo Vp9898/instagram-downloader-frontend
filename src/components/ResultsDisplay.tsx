@@ -12,34 +12,43 @@ export function HeroSection() {
   const [error, setError] = React.useState<string | null>(null);
   const [data, setData] = React.useState<any | null>(null);
 
-  // --- إضافة جديدة: مرجع (ref) لقسم النتائج ---
   const resultsRef = React.useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
-    setData(null);
-
+    // لا نمسح البيانات القديمة إلا عند بدء طلب جديد ناجح أو عند حدوث خطأ
+    
     try {
       const response = await fetch(BACKEND_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
+      
       const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.details || result.error || 'An unknown error occurred.');
-      }
-      setData(result);
 
-      // --- إضافة جديدة: التمرير إلى النتائج بعد تأخير بسيط ---
-      // نعطي تأخيرًا بسيطًا للسماح للمكون بالظهور قبل التمرير
+      if (!response.ok) {
+        const details = (result.details || result.error || '').toLowerCase();
+        if (details.includes('private') || details.includes('not available') || details.includes('login required') || details.includes('not found')) {
+          throw new Error('This content is private or unavailable.');
+        } else {
+          throw new Error('Failed to fetch data. Please check the URL and try again.');
+        }
+      }
+      
+      // عند النجاح، نمسح أي خطأ قديم ونعين البيانات الجديدة
+      setError(null);
+      setData(result);
+      
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
 
     } catch (err: any) {
+      // عند حدوث خطأ، نمسح أي بيانات قديمة ونعين رسالة الخطأ
+      setData(null);
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -47,9 +56,8 @@ export function HeroSection() {
   };
 
   return (
-    // --- تعديل: نستخدم قسمًا واحدًا يحتوي على كل شيء ---
     <section className="w-full">
-      {/* قسم فورم التحميل */}
+      {/* قسم فورم التحميل (دائمًا ظاهر) */}
       <div className="bg-gray-50 py-12 md:py-20">
         <div className="mx-auto max-w-5xl px-4 text-center">
           <div className="mb-4">
@@ -67,21 +75,24 @@ export function HeroSection() {
             <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
               <label htmlFor="url-input" className="text-lg font-semibold text-gray-800">Paste Instagram URL</label>
               <input id="url-input" type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.instagram.com/p/..." className="w-full rounded-md border-gray-300 px-4 py-3 text-lg shadow-sm focus:border-purple-500 focus:ring-purple-500" disabled={isLoading} />
-              <button type="submit" className="flex w-full items-center justify-center rounded-md bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-4 text-lg font-semibold text-white shadow-md transition-transform duration-200 hover:scale-105 active:scale-95 disabled:opacity-50" disabled={isLoading}>
+              <button type="submit" className="flex w-full items-center justify-center rounded-md bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-4 text-lg font-semibold text-white shadow-md transition-transform duration-200 hover:scale-105 active:scale-95 disabled:opacity-50" disabled={isLoading || !url}>
                 {isLoading ? (<><Loader2 className="mr-2 h-5 w-5 animate-spin" />Processing...</>) : (<><Download className="mr-2 h-5 w-5" />Download</>)}
               </button>
             </form>
+            {/* رسالة الخطأ تظهر هنا عند الحاجة */}
             {error && (
-              <div className="mt-4 flex items-center justify-center text-red-600"><AlertTriangle className="mr-2 h-5 w-5" /><p>{error}</p></div>
+              <div className="mt-4 flex items-center justify-center text-red-600 bg-red-100 p-3 rounded-md border border-red-300">
+                <AlertTriangle className="mr-2 h-5 w-5 flex-shrink-0" />
+                <p className="font-semibold text-center">{error}</p>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* --- إضافة جديدة: قسم النتائج مع المرجع (ref) --- */}
-      {/* هذا القسم لن يعرض أي شيء إلا بعد وصول البيانات */}
-      <div ref={resultsRef} className="w-full bg-white py-12 md:py-20">
-        {data && <ResultsDisplay data={data} />}
+      {/* قسم النتائج (يظهر فقط عند وجود بيانات) */}
+      <div ref={resultsRef} className="w-full bg-white transition-all duration-300">
+        {data && <div className="py-12 md:py-20"><ResultsDisplay data={data} /></div>}
       </div>
     </section>
   );
