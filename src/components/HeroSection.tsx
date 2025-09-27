@@ -3,11 +3,14 @@
 import * as React from 'react';
 import { Download, Loader2 } from 'lucide-react';
 
+// --- هذا هو الجزء المصحح ---
+// نخبر TypeScript أن هذا المكون سيستقبل هذه الخصائص
 interface HeroSectionProps {
   isLoading: boolean;
   onSubmit: (url: string) => void;
 }
 
+// --- ونستخدم الواجهة هنا ---
 export function HeroSection({ isLoading, onSubmit }: HeroSectionProps) {
   const [url, setUrl] = React.useState('');
 
