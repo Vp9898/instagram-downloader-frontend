@@ -15,38 +15,26 @@ export function HeroSection() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("1. handleSubmit triggered");
     setView('LOADING');
     
     try {
-      console.log("2. Calling backend API...");
       const response = await fetch(BACKEND_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
-      console.log("3. Backend response received with status:", response.status);
-
-      if (!response.ok) {
-        console.log("4. Response is NOT OK. Reading error...");
-        const errorResult = await response.json();
-        console.log("5. Error JSON from backend:", errorResult);
-        const details = (errorResult.details || errorResult.error || '').toLowerCase();
-        if (details.includes('private') || details.includes('not available') || details.includes('login required')) {
-          throw new Error('This content is private or unavailable and cannot be downloaded.');
-        } else {
-          throw new Error('Failed to fetch the media. Please check the URL and try again.');
-        }
-      }
-
-      console.log("6. Response is OK. Reading data...");
+      
       const result = await response.json();
-      console.log("7. Data JSON from backend:", result);
-      setData(result);
-      setView('RESULTS');
 
+      // الآن، نتحقق فقط مما إذا كان الرد يحتوي على "media"
+      if (result && result.media && result.media.length > 0) {
+        setData(result);
+        setView('RESULTS');
+      } else {
+        // أي رد آخر يعتبر خطأ
+        throw new Error(result.error || 'This content is private or unavailable.');
+      }
     } catch (err: any) {
-      console.error("8. An error was caught:", err.message);
       setErrorMessage(err.message);
       setView('ERROR');
     }
@@ -54,8 +42,6 @@ export function HeroSection() {
 
   const handleReset = () => {
     setUrl('');
-    setData(null);
-    setErrorMessage('');
     setView('FORM');
   };
 
@@ -115,3 +101,4 @@ export function HeroSection() {
     </section>
   );
 }
+```4.  **احفظ التغييرات.**
