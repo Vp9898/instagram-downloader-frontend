@@ -1,12 +1,11 @@
 "use client";
 
 import * as React from 'react';
-import { Download, Loader2, AlertTriangle, ShieldX } from 'lucide-react';
+import { Download, Loader2, ShieldX } from 'lucide-react';
 import { ResultsDisplay } from './ResultsDisplay';
 
 const BACKEND_URL = 'https://instagram-downloader-backend.foade984.workers.dev';
 
-// نحدد الحالات الممكنة للعرض
 type ViewState = 'FORM' | 'LOADING' | 'RESULTS' | 'ERROR';
 
 export function HeroSection() {
@@ -30,9 +29,9 @@ export function HeroSection() {
       if (!response.ok) {
         const details = (result.details || result.error || '').toLowerCase();
         if (details.includes('private') || details.includes('not available') || details.includes('login required')) {
-          throw new Error('This content is private or unavailable.');
+          throw new Error('This content is private or unavailable and cannot be downloaded.');
         } else {
-          throw new Error('Failed to fetch data. Please check the URL.');
+          throw new Error('Failed to fetch the media. Please check the URL and try again.');
         }
       }
       setData(result);
@@ -50,11 +49,12 @@ export function HeroSection() {
     setView('FORM');
   };
 
+  // --- الإصلاح #2: تقليل المسافة العلوية ---
+  // غيرنا min-h-[calc(80vh)] إلى padding-top and bottom (py-12)
   return (
-    <section className="bg-gray-50 py-12 md:py-20 flex items-center justify-center min-h-[calc(80vh)]">
+    <section className="bg-gray-50 py-12 md:py-16 flex items-center justify-center">
       <div className="mx-auto max-w-5xl px-4 text-center w-full">
         
-        {/* عرض التحميل */}
         {view === 'LOADING' && (
           <div className="flex flex-col items-center justify-center text-gray-600">
             <Loader2 className="h-12 w-12 animate-spin text-purple-600" />
@@ -62,7 +62,6 @@ export function HeroSection() {
           </div>
         )}
         
-        {/* عرض الفورم */}
         {view === 'FORM' && (
           <>
             <div className="mb-4">
@@ -81,15 +80,12 @@ export function HeroSection() {
           </>
         )}
 
-        {/* عرض النتائج */}
         {view === 'RESULTS' && data && (
-          <div>
-            <button onClick={handleReset} className="mb-8 text-purple-600 hover:text-purple-800 font-semibold">&larr; Download another</button>
-            <ResultsDisplay data={data} />
-          </div>
+          // --- الإصلاح #3: تم حذف زر "Download another" من هنا ---
+          <ResultsDisplay data={data} />
         )}
 
-        {/* عرض الخطأ */}
+        {/* --- الإصلاح #1: عرض بطاقة الخطأ بشكل صحيح --- */}
         {view === 'ERROR' && (
            <div className="w-full max-w-lg mx-auto rounded-xl bg-white shadow-xl animate-fade-in overflow-hidden">
               <div className="p-8 flex flex-col items-center justify-center text-center">
