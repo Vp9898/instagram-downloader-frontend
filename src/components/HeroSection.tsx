@@ -26,14 +26,16 @@ export function HeroSection() {
       
       const result = await response.json();
 
-      // الآن، نتحقق فقط مما إذا كان الرد يحتوي على "media"
-      if (result && result.media && result.media.length > 0) {
-        setData(result);
-        setView('RESULTS');
-      } else {
-        // أي رد آخر يعتبر خطأ
-        throw new Error(result.error || 'This content is private or unavailable.');
+      if (!response.ok) {
+        const details = (result.details || result.error || '').toLowerCase();
+        if (details.includes('private') || details.includes('not available') || details.includes('login required')) {
+          throw new Error('This content is private or unavailable and cannot be downloaded.');
+        } else {
+          throw new Error('Failed to fetch the media. Please check the URL and try again.');
+        }
       }
+      setData(result);
+      setView('RESULTS');
     } catch (err: any) {
       setErrorMessage(err.message);
       setView('ERROR');
@@ -42,6 +44,8 @@ export function HeroSection() {
 
   const handleReset = () => {
     setUrl('');
+    setData(null);
+    setErrorMessage('');
     setView('FORM');
   };
 
@@ -101,4 +105,3 @@ export function HeroSection() {
     </section>
   );
 }
-```4.  **احفظ التغييرات.**
