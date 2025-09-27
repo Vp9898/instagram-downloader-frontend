@@ -54,6 +54,7 @@ export function HeroSection() {
 
   return (
     <section className="w-full">
+      {/* قسم فورم التحميل */}
       <div className="bg-gray-50 py-12 md:py-20">
         <div className="mx-auto max-w-5xl px-4 text-center">
           <div className="mb-4">
@@ -85,6 +86,7 @@ export function HeroSection() {
         </div>
       </div>
 
+      {/* قسم النتائج */}
       <div ref={resultsRef} className="w-full bg-white transition-all duration-300">
         {data && <div className="py-12 md:py-20"><ResultsDisplay data={data} /></div>}
       </div>
