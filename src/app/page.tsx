@@ -10,7 +10,6 @@ export default function HomePage() {
     <>
       <Header />
       <main className="pt-16 bg-gray-50">
-        {/* الصفحة الرئيسية تحتوي فقط على HeroSection وبقية الأقسام */}
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />
