@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, Copy } from 'lucide-react';
 
 interface MediaItem { thumbnail: string; url: string; }
 interface ApiResponse { media: MediaItem[]; }
@@ -9,20 +9,20 @@ const BACKEND_URL = 'https://instagram-downloader-backend.foade984.workers.dev';
 
 export function ResultsDisplay({ data }: ResultsDisplayProps) {
   const [isDownloading, setIsDownloading] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
 
   if (!data?.media?.length) return null;
 
   const firstMedia = data.media[0];
   const isVideo = firstMedia.url.includes('.mp4') || firstMedia.url.includes('video');
 
-  // --- السحر يحدث هنا: نستخدم الوكيل لجلب الصور المصغرة ---
   const thumbnailProxyUrl = `${BACKEND_URL}/image-proxy?url=${encodeURIComponent(firstMedia.thumbnail)}`;
   const imageUrlProxy = isVideo ? firstMedia.url : `${BACKEND_URL}/image-proxy?url=${encodeURIComponent(firstMedia.url)}`;
 
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      const response = await fetch(imageUrlProxy); // نستخدم الوكيل للتحميل أيضًا لضمان النجاح
+      const response = await fetch(imageUrlProxy);
       const blob = await response.blob();
       const objectUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -38,6 +38,12 @@ export function ResultsDisplay({ data }: ResultsDisplayProps) {
       setIsDownloading(false);
     }
   };
+  
+  const handleCopy = () => {
+    navigator.clipboard.writeText(firstMedia.url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="w-full max-w-lg mx-auto mt-8 rounded-xl bg-white shadow-xl animate-fade-in overflow-hidden">
@@ -46,23 +52,13 @@ export function ResultsDisplay({ data }: ResultsDisplayProps) {
       </div>
 
       <div className="bg-gray-50 p-4 md:p-6 flex flex-col items-center">
-        {/* --- CSS جديد للحفاظ على الأبعاد الأصلية --- */}
         <div className="w-full mb-6">
           {isVideo ? (
-            <video
-              src={firstMedia.url}
-              controls
-              poster={thumbnailProxyUrl} // نستخدم الوكيل هنا!
-              className="w-full h-auto rounded-lg shadow-md aspect-auto" // aspect-auto للحفاظ على الأبعاد
-            >
+            <video src={firstMedia.url} controls poster={thumbnailProxyUrl} className="w-full h-auto rounded-lg shadow-md aspect-auto">
               Your browser does not support the video tag.
             </video>
           ) : (
-            <img
-              src={thumbnailProxyUrl} // نستخدم الوكيل هنا!
-              alt="Downloaded media"
-              className="w-full h-auto rounded-lg shadow-md aspect-auto" // aspect-auto للحفاظ على الأبعاد
-            />
+            <img src={thumbnailProxyUrl} alt="Downloaded media" className="w-full h-auto rounded-lg shadow-md aspect-auto" />
           )}
         </div>
         
@@ -79,6 +75,18 @@ export function ResultsDisplay({ data }: ResultsDisplayProps) {
             )}
           </button>
         </div>
+
+        <div className="w-full max-w-md mt-6">
+          <div className="flex items-center justify-center space-x-4">
+            <span className="text-sm font-semibold text-gray-600">Share:</span>
+            
+            <button onClick={handleCopy} className="flex items-center space-x-2 p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition">
+              <Copy className="h-5 w-5 text-gray-700" />
+            </button>
+            <span className={`text-sm text-green-600 font-semibold transition-opacity duration-300 ${copied ? 'opacity-100' : 'opacity-0'}`}>Copied!</span>
+          </div>
+        </div>
+
       </div>
     </div>
   );
