@@ -54,7 +54,6 @@ export function HeroSection() {
 
   return (
     <section className="w-full">
-      {/* قسم فورم التحميل */}
       <div className="bg-gray-50 py-12 md:py-20">
         <div className="mx-auto max-w-5xl px-4 text-center">
           <div className="mb-4">
@@ -72,7 +71,7 @@ export function HeroSection() {
             <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
               <label htmlFor="url-input" className="text-lg font-semibold text-gray-800">Paste Instagram URL</label>
               <input id="url-input" type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.instagram.com/p/..." className="w-full rounded-md border-gray-300 px-4 py-3 text-lg shadow-sm focus:border-purple-500 focus:ring-purple-500" disabled={isLoading} />
-              <button type="submit" className="flex w-full items-center justify-center rounded-md bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-4 text-lg font-semibold text-white shadow-md transition-transform duration-200 hover:scale-105 active:scale-95 disabled:opacity-50" disabled={isLoading || !url}>
+              <button type="submit" className="flex w-full items-center justify-center rounded-md bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-4 text-lg font-semibold text-white shadow-md transition-transform duration-200 hover:scale-105 active:scale-95 disabled:opacity-50" disabled={isLoading}>
                 {isLoading ? (<><Loader2 className="mr-2 h-5 w-5 animate-spin" />Processing...</>) : (<><Download className="mr-2 h-5 w-5" />Download</>)}
               </button>
             </form>
@@ -86,7 +85,6 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* قسم النتائج */}
       <div ref={resultsRef} className="w-full bg-white transition-all duration-300">
         {data && <div className="py-12 md:py-20"><ResultsDisplay data={data} /></div>}
       </div>
