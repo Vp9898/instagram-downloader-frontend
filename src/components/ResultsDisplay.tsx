@@ -1,17 +1,30 @@
 import * as React from 'react';
 import { Download, Loader2 } from 'lucide-react';
 
-interface MediaItem { thumbnail: string; url: string; }
-interface ApiResponse { media: MediaItem[]; }
-interface ResultsDisplayProps { data: ApiResponse; }
+// تحديث الواجهة لتطابق رد RapidAPI
+interface MediaItem {
+  thumbnail: string;
+  url: string;
+}
+interface ApiResponse {
+  status: string;
+  data: MediaItem[];
+}
+interface ResultsDisplayProps {
+  apiResponse: ApiResponse;
+}
 
 const BACKEND_URL = 'https://instagram-downloader-backend.foade984.workers.dev';
 
-export function ResultsDisplay({ data }: ResultsDisplayProps) {
+export function ResultsDisplay({ apiResponse }: ResultsDisplayProps) {
   const [isDownloading, setIsDownloading] = React.useState(false);
-  if (!data?.media?.length) return null;
+  
+  // تحديث التحقق
+  if (apiResponse.status !== 'success' || !apiResponse?.data?.length) {
+    return null;
+  }
 
-  const firstMedia = data.media[0];
+  const firstMedia = apiResponse.data[0];
   const isVideo = firstMedia.url.includes('.mp4') || firstMedia.url.includes('video');
   const thumbnailProxyUrl = `${BACKEND_URL}/image-proxy?url=${encodeURIComponent(firstMedia.thumbnail)}`;
   const imageUrlProxy = isVideo ? firstMedia.url : `${BACKEND_URL}/image-proxy?url=${encodeURIComponent(firstMedia.url)}`;
@@ -46,15 +59,4 @@ export function ResultsDisplay({ data }: ResultsDisplayProps) {
           {isVideo ? (
             <video src={firstMedia.url} controls poster={thumbnailProxyUrl} className="w-full h-auto rounded-lg shadow-md aspect-auto" />
           ) : (
-            <img src={thumbnailProxyUrl} alt="Downloaded media" className="w-full h-auto rounded-lg shadow-md aspect-auto" />
-          )}
-        </div>
-        <div className="w-full max-w-md">
-          <button onClick={handleDownload} disabled={isDownloading} className="flex w-full items-center justify-center rounded-md bg-gradient-to-r from-green-500 to-blue-500 px-6 py-4 text-lg font-semibold text-white shadow-md transition-transform duration-200 hover:scale-105 active:scale-95 disabled:opacity-75">
-            {isDownloading ? (<><Loader2 className="mr-3 h-6 w-6 animate-spin" /> Downloading...</>) : (<><Download className="mr-3 h-6 w-6" /> Download Now</>)}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+            <img
